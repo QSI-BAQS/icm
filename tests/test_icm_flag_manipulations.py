@@ -1,11 +1,12 @@
 import cirq
 import pytest
-from ..src.icm.icm_flag_manipulations import (
-    is_op_with_decomposed_flag,
-    reset_decomposition_flags,
+
+from icm.icm_flag_manipulations import (
     add_decomposition_flags,
-    is_op_with_op_id,
-    reset_op_ids,
     add_op_ids,
+    is_op_with_decomposed_flag,
+    is_op_with_op_id,
     remove_op_ids,
+    reset_decomposition_flags,
+    reset_op_ids,
 )

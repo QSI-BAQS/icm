@@ -6,10 +6,10 @@ diagrams" https://arxiv.org/abs/1811.06011
 """
 
 import cirq
+
+from . import SplitQubit, icm_flag_manipulations
 from . import icm_operation_id as op
-from . import icm_flag_manipulations
-from .wire_manipulation import split_wires, initialise_circuit, correction_seq
-from . import SplitQubit
+from .wire_manipulation import correction_seq, initialise_circuit, split_wires
 
 
 def icm_circuit(circuit, gates_to_decomp, inverse=False):
@@ -60,7 +60,7 @@ def icm_circuit(circuit, gates_to_decomp, inverse=False):
         # If gate is not in the to be decomposed list, will apply it to
         # the latest reference. For inverse icm, it will apply H to latest
         # without decomposing
-        if not op.gate in gates_to_decomp:
+        if op.gate not in gates_to_decomp:
             qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
             decomp = op.gate.on(*qubits)
             decomposed_list.append(decomp)
@@ -241,7 +241,7 @@ def iicm_circuit(circuit, gates_to_decomp):
         # If gate is not in the to be decomposed list, will apply it to
         # the latest reference.
 
-        if not op.gate in gates_to_decomp:
+        if op.gate not in gates_to_decomp:
             qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
             decomp = op.gate.on(*qubits)
             decomposed_list.append(decomp)

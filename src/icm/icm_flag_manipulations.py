@@ -1,3 +1,5 @@
+from icm.icm_operation_id import OperationId
+
 """
     FLAG MANIPULATIONS
 """
@@ -30,8 +32,6 @@ def remove_decomposition_flags(circuit, gate_type):
 """
 opid
 """
-
-from icm.icm_operation_id import OperationId
 
 
 def is_op_with_op_id(op, gate_types):

@@ -1,4 +1,5 @@
 import cirq
+
 import icm.icm_operation_id as opid
 
 
@@ -29,7 +30,8 @@ class SplitQubit(cirq.NamedQubit):
             stuck += 1
             if stuck == 1000:
                 print(
-                    f"Error: I got stuck updating reference for qubit {self.name} with operation with id : {operation_id.numbers}, exiting loop"
+                    f"Error: I got stuck updating reference for qubit {self.name} with"
+                    f"operation with id : {operation_id.numbers}, exiting loop"
                 )
                 break
             # Decide based on the threshold

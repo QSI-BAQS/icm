@@ -1,9 +1,10 @@
 import cirq
 import pytest
-from ..src.icm.icm_converter import (
+
+from icm.icm_converter import (
+    decomp_to_icm,
     icm_circuit,
     iicm_circuit,
-    decomp_to_icm,
-    keep_icm,
     keep_clifford,
+    keep_icm,
 )
