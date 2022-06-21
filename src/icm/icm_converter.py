@@ -19,7 +19,9 @@ def icm_circuit(
     circuit: Circuit, gates_to_decomp: List[Gate], inverse=False
 ) -> Circuit:
     """
-    Function that converts an input circuit into icm form
+    Function that converts an input circuit into icm form. The ICM
+    form of a circuit is an equivalent, fault-tolerant implementation
+    explained briefly in the readme.
 
     The decomposition sweeps the circuit using the circuit.all_operations()
     generator method instead of using the intercepting decomposer.
@@ -30,8 +32,9 @@ def icm_circuit(
     Parameters
     ----------
     circuit : Circuit
+        circuit to be put into ICM form.
 
-    gates_to_decomp: list
+    gates_to_decomp:
         list of gates that need to be decomposed
 
     inverse : Bool, optional
@@ -281,22 +284,28 @@ def iicm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
     return circuit
 
 
-def decomp_to_icm(cirq_operation: Gate) -> List[Union[CNOT, Operation]]:
+def decomp_to_icm(cirq_operation: Operation) -> List[Union[CNOT, Operation]]:
     """
+    Decompose a gate into an ICM form. The type of the gate and the
+        initialisation of the qubits is not considered. See
+        https://arxiv.org/abs/1811.06011 for more details.
 
-    :param cirq_operation:
-    :return:
+    Parameters
+    ----------
+    cirq_operation:
+        Operation to be decomposed.
+
+    Returns
+    -------
+    List:
+        CNOT gate an measurment which are equivalent to the gate in ICM
+        form.
     """
 
     new_op_id = cirq_operation.icm_op_id.add_decomp_level()
 
     # Assume for the moment that these are only single qubit operations
     new_wires = cirq_operation.qubits[0].split_this_wire(new_op_id)
-
-    """
-        In this version the type of the gate, and the initialisation
-        of the qubits is not considered.
-    """
 
     # Create the cnot
     cnot = CNOT(new_wires[0], new_wires[1])
@@ -323,24 +332,31 @@ def decomp_to_icm(cirq_operation: Gate) -> List[Union[CNOT, Operation]]:
 
 def keep_icm(cirq_operation: Operation) -> bool:
     """
+    Determine if an operation should be decomposed into an ICM circuit.
 
-    :param cirq_operation:
-    :return:
-    """
-    """
-        Decompose if the operation is not from the set of the ones to keep
+    Decompose if the operation is not from the set of the ones to keep
+
+    Keep the operation if:
+        * this operation that should be decomposed
+        AND
+        * is not marked for decomposition
+
+    Parameters
+    ----------
+    cirq_operation :
+        Operation which we may want to decompose.
+
+    Returns
+    -------
+    keep :
+        Boolean value which is true if the gate should not be decomposed
+        false if the gate should be decomposed.
     """
     keep = False
 
     if isinstance(cirq_operation.gate, (cirq.CNOTPowGate, cirq.measurementGate)):
         keep = True
 
-    """
-        Keep the operation if:
-        * this is an operation that should be decomposed
-        AND
-        * is not marked for decomposition
-    """
     if not icm_flag_manipulations.is_op_with_op_id(
         cirq_operation, [cirq_operation.gate]
     ):

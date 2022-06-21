@@ -2,6 +2,15 @@ from typing import Tuple, Union
 
 
 class OperationId:
+    """Create and compare a tuple of numbers.
+
+    Often added as an attribute to a gate which gives a number to
+    that particular gate.
+
+    Attributes:
+        numbers (Tuple(int)): tuple of integers describing all the ids
+            that a given operation has.
+    """
 
     DEFAULT_NOT_INIT = -1
 
@@ -18,11 +27,21 @@ class OperationId:
         self.numbers = tuple(numbers_tuple)
 
     def add_decomp_level(self) -> "OperationId":
-        # append a zero and return a new ID
+        """Return an OperationID with the same numbers as self with 0 appended.
+
+        Returns:
+            OperationId: An OperationID with the same numbers as self with 0 appended.
+        """
         return OperationId(self.numbers + (0,))
 
     def advance_decomp(self) -> "OperationId":
-        # return
+        """Return an OperationID with the same numbers as self with last number
+            incremented by 1..
+
+        Returns:
+            OperationId: An OperationID with the same numbers as self ith last number
+            incremented by 1.
+        """
         last_number = self.numbers[-1]
         return OperationId(self.numbers[:-1] + (last_number + 1,))
 

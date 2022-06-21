@@ -14,8 +14,14 @@ def split_wires(qubit: SplitQubit, n: int, opid: OperationId) -> List[SplitQubit
     This will return a list of qubits [q, anc_0, anc_1,...,anc_n-2],
     where q is split into q and anc_0, anc_0 is split into anc_0 and anc_1 and so on.
 
-    """
+    Args:
+        qubit (SplitQubit): Qubit to be split n times.
+        n (int): number of times to split qubit.
+        opid (OperationId): OperationId at which to split the qubit.
 
+    Returns:
+        List[SplitQubit]: List of qubits that qubit was split into.
+    """
     wires = [qubit]
 
     for i in range(n - 1):
@@ -40,7 +46,6 @@ def initialise_circuit(cirq_circuit: Circuit) -> Circuit:
     new_cirq : Circuit
         circuit with  qubits replaced and unique gate operations
     """
-
     qubit_map = {}
     for q in cirq_circuit.all_qubits():
         q_split = SplitQubit(str(q))
@@ -60,14 +65,19 @@ def initialise_circuit(cirq_circuit: Circuit) -> Circuit:
 def correction_seq(
     meas_outcome: Tuple[int, int, int, int]
 ) -> Tuple[int, int, int, int]:
-    """
-    Returns the measurement sequence for Z and X after measuring qubit i.
+    """Returns the measurement sequence for Z and X after measuring qubit i.
 
     X = 0
     Z = 1
 
     seq (0, 1, 1, 0) means the followings gates should be applied
     X(i + 1) Z(i + 2) Z(i + 3) X(i + 4)
+
+    Args:
+        meas_outcome (Tuple[int, int, int, int]): Correct measurement input.
+
+    Returns:
+        Tuple[int, int, int, int]: Output correct sequence after measuring.
     """
     if meas_outcome:
         return (1, 0, 0, 1)
