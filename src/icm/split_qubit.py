@@ -1,24 +1,29 @@
-import cirq
+from typing import Optional, Tuple
 
-import icm.icm_operation_id as opid
+from cirq import NamedQubit
+
+from icm.icm_operation_id import OperationId
 
 
-class SplitQubit(cirq.NamedQubit):
+class SplitQubit(NamedQubit):
 
     # Static nr_ancilla
     nr_ancilla = -1
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         super().__init__(name)
 
         # A qubit/wire is split in two and these are the resulting wires
-        self.children = (None, None)
+        self.children: Tuple[Optional["SplitQubit"], Optional["SplitQubit"]] = (
+            None,
+            None,
+        )
 
         # The decision on which wire to use is based on the id of the operation
         # that generated the split
-        self.threshold = opid.OperationId()
+        self.threshold = OperationId()
 
-    def get_latest_ref(self, operation_id):
+    def get_latest_ref(self, operation_id: OperationId) -> "SplitQubit":
 
         # this wire has not been split
         if self.children == (None, None):
@@ -26,23 +31,38 @@ class SplitQubit(cirq.NamedQubit):
 
         n_ref = self
         stuck = 0
-        while n_ref.children != (None, None):
+        while True:
             stuck += 1
             if stuck == 1000:
                 print(
-                    f"Error: I got stuck updating reference for qubit {self.name} with"
-                    f"operation with id : {operation_id.numbers}, exiting loop"
+                    f"Error: I got stuck updating reference for qubit {self.name} "
+                    f"with operation with id : {operation_id.numbers}, exiting loop."
                 )
                 break
             # Decide based on the threshold
-            if n_ref.threshold >= operation_id:
+            if (
+                isinstance(n_ref.children[0], OperationId)
+                and n_ref.threshold >= operation_id
+            ):
                 n_ref = n_ref.children[0]
-            else:
+            elif (
+                isinstance(n_ref.children[1], OperationId)
+                and n_ref.threshold < operation_id
+            ):
                 n_ref = n_ref.children[1]
+            elif n_ref.children == (None, None):
+                break
+            else:
+                TypeError(
+                    "Children of SplitQubit up to threshold"
+                    "must be defined to split wire."
+                )
 
         return n_ref
 
-    def split_this_wire(self, operation_id):
+    def split_this_wire(
+        self, operation_id: OperationId
+    ) -> Tuple["SplitQubit", "SplitQubit"]:
         # It can happen that the reference is too old
         current_wire = self.get_latest_ref(operation_id)
 
@@ -56,7 +76,6 @@ class SplitQubit(cirq.NamedQubit):
         SplitQubit.nr_ancilla += 1
         n_child_1 = SplitQubit("anc_{0}".format(SplitQubit.nr_ancilla))
 
-        # Update the children tuple of this wire
         current_wire.children = (n_child_0, n_child_1)
 
         # Return the children as a tuple

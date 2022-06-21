@@ -1,9 +1,13 @@
-import cirq
+from typing import List, Tuple
+
+from cirq import Circuit
+
+from icm.icm_operation_id import OperationId
 
 from . import SplitQubit
 
 
-def split_wires(qubit, n, opid):
+def split_wires(qubit: SplitQubit, n: int, opid: OperationId) -> List[SplitQubit]:
     """
     Split a qubit n times
 
@@ -22,18 +26,18 @@ def split_wires(qubit, n, opid):
     return wires
 
 
-def initialise_circuit(cirq_circuit):
+def initialise_circuit(cirq_circuit: Circuit) -> Circuit:
     """
     Converts qubits to SplitQubits and ensures that all operations are unique
 
     Parameters
     ----------
-    cirq_circuit : cirq.Circuit
+    cirq_circuit : Circuit
         input circuit
 
     Returns
     -------
-    new_cirq : cirq.Circuit
+    new_cirq : Circuit
         circuit with  qubits replaced and unique gate operations
     """
 
@@ -43,7 +47,7 @@ def initialise_circuit(cirq_circuit):
         qubit_map[str(q)] = q_split
 
     # print(qubit_map)
-    new_circ = cirq.Circuit()
+    new_circ = Circuit()
     for moment in cirq_circuit:
         for op in moment:
             new_qubits = [qubit_map[str(q)] for q in list(op.qubits)]
@@ -53,7 +57,9 @@ def initialise_circuit(cirq_circuit):
     return new_circ
 
 
-def correction_seq(meas_outcome):
+def correction_seq(
+    meas_outcome: Tuple[int, int, int, int]
+) -> Tuple[int, int, int, int]:
     """
     Returns the measurement sequence for Z and X after measuring qubit i.
 

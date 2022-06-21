@@ -1,3 +1,4 @@
 import cirq
 import pytest
-from split_qubit import SplitQubit
+
+from icm.split_qubit import SplitQubit
