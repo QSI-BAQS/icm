@@ -48,32 +48,32 @@ class OperationId:
     def _cmp_tuple(self) -> Tuple[int, ...]:
         return self.numbers
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() == other._cmp_tuple()
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() != other._cmp_tuple()
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: object) -> bool:
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() < other._cmp_tuple()
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: object) -> bool:
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() > other._cmp_tuple()
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other: object) -> bool:
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() <= other._cmp_tuple()
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other: object) -> bool:
         if not isinstance(other, OperationId):
             return NotImplemented
         return self._cmp_tuple() >= other._cmp_tuple()
