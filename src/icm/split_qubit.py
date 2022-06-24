@@ -6,7 +6,7 @@ from icm.icm_operation_id import OperationId
 
 
 class SplitQubit(NamedQubit):
-    """_summary_
+    """
 
     Attributes:
         children Tuple[Optional[SplitQubit], Optional[SplitQubit]]:
@@ -56,7 +56,7 @@ class SplitQubit(NamedQubit):
             else:
                 TypeError(
                     "Children of SplitQubit up to threshold"
-                    "must be defined to split wire."
+                    " must be defined to split wire."
                 )
 
         if stuck == 999:
@@ -70,7 +70,7 @@ class SplitQubit(NamedQubit):
     def split_this_wire(
         self, operation_id: OperationId
     ) -> Tuple["SplitQubit", "SplitQubit"]:
-        """Decompose qubit into it's children
+        """Decompose qubit into it's children.
 
         Args:
             operation_id (OperationId) : Threshold at which to split qubit.

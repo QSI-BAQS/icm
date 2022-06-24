@@ -1,6 +1,6 @@
 from cirq import Circuit, Gate, Operation
 
-from icm.icm_operation_id import OperationId
+from .icm_operation_id import OperationId
 
 
 def is_op_with_decomposed_flag(op: Operation, gate_type: Gate) -> bool:

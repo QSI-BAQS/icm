@@ -2,9 +2,8 @@ from typing import List, Tuple
 
 from cirq import Circuit
 
-from icm.icm_operation_id import OperationId
-
-from . import SplitQubit
+from .icm_operation_id import OperationId
+from .split_qubit import SplitQubit
 
 
 def split_wires(qubit: SplitQubit, n: int, opid: OperationId) -> List[SplitQubit]:
