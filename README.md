@@ -1,7 +1,7 @@
 # ICM
 ## What is it?
 
-`icm` provides python code for compiling a quantum circuit to a fault-tolerant version of the circuit, specificall (the ICM format)[https://arxiv.org/abs/1509.02004]. The ICM format consists of 3 layers of computation which together can represent any quantum circuit. 
+`icm` provides python code for compiling a quantum circuit to a fault-tolerant version of the circuit, specifically [the ICM format](https://arxiv.org/abs/1509.02004). The ICM format consists of 3 layers of computation which together can represent any quantum circuit. 
 1. Initialization - Here we initialize the qubit states we will need for our computation. Namely |0>, |+>, and magic states. 
 2. CNOT - A series of CNOT gates that perform most of the computation
 3. Measurement - Measuring in the Z or X eigenbases is used to implement single qubit gates in the sequence. 
@@ -19,6 +19,7 @@ Simply call the `icm_converter` function with the circuit you want to put in ICM
 ## Development
 To keep our repository clean and functional, we have implemented style checks and
 tests. We expect that contributors will follow these standards when contributing.
+
 ### Installation
 To make sure you have all the tools to run style checks, you should run
 `pip install -e "[.dev]"` to make sure all those tools are installed. You might
