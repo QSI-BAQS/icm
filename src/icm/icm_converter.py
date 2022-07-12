@@ -17,7 +17,7 @@ from .wire_manipulation import initialise_circuit, split_wires
 def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
     """
     Function that converts an input circuit into inverse icm form. We implement
-    cliffords through initialization and CNOT, but T gates are implemented via
+    Cliffords through initialization and CNOT, but T gates are implemented via
     non-clifford measurements (teleportation).
 
     The decomposition sweeps the circuit using the circuit.all_operations()
@@ -29,6 +29,7 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
     Parameters
     ----------
     circuit : Circuit
+        circuit to be put in icm form
 
     gates_to_decomp: list
         list of gates that need to be decomposed
@@ -58,9 +59,8 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
         decomp = []
         new_op_id = op.icm_op_id.add_decomp_level()
 
-        # If gate is not in the to be decomposed list, will apply it to
+        # If gate is not in the to be decomposed list, apply it to
         # the latest reference.
-
         if op.gate not in gates_to_decomp:
             qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
             decomp = op.gate.on(*qubits)
@@ -77,7 +77,7 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
             # Add measurement gate
             decomp.append(measure(wires[0]))
 
-            # Track measured qubits
+            # Track qubits which are measured to implement T gates
             t_meas_locs.append(wires[0])
 
         decomposed_list.append(decomp)

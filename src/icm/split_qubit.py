@@ -1,8 +1,9 @@
 from typing import Optional, Tuple
+from warnings import warn
 
 from cirq import NamedQubit
 
-from icm.icm_operation_id import OperationId
+from .icm_operation_id import OperationId
 
 
 class SplitQubit(NamedQubit):
@@ -60,7 +61,7 @@ class SplitQubit(NamedQubit):
                 )
 
         if stuck == 999:
-            print(
+            warn(
                 f"Error: Got stuck updating reference for qubit {self.name} "
                 f"with operation with id : {operation_id.numbers}."
             )
