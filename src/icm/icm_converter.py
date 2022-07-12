@@ -9,7 +9,7 @@ from typing import List
 import cirq
 from cirq import CNOT, Circuit, Gate, H, Operation, S, T, measure
 
-from .icm_flag_manipulations import add_op_ids, is_op_with_op_id
+from .icm_operation import add_op_ids, is_op_with_op_id
 from .icm_operation_id import RIGHT_MOST_OP
 from .wire_manipulation import initialise_circuit, split_wires
 
@@ -36,7 +36,7 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
 
     Returns
     -------
-    iicm_circuit : Circuit
+    icm_circuit : Circuit
         The decomposed circuit
     """
     # skips decomposing H and S, S**-1
