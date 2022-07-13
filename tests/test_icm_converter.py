@@ -3,7 +3,7 @@ import pytest
 from cirq import CNOT, Circuit, H, I, Moment, NamedQubit, T, Z, approx_eq, measure
 from cirq.testing import assert_same_circuits
 
-from icm.icm_converter import icm_circuit, keep_clifford, keep_icm
+from icm.icm_converter import icm_circuit, keep_icm
 from icm.split_qubit import SplitQubit
 
 TEST_GATES = [

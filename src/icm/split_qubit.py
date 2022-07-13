@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 from warnings import warn
 
 from cirq import NamedQubit
@@ -97,3 +97,28 @@ class SplitQubit(NamedQubit):
 
         # Return the children as a tuple
         return current_wire.children
+
+    def split(self, n: int, opid: OperationId) -> List["SplitQubit"]:
+        """
+        Split a qubit n times
+
+        This will return a list of qubits [q, anc_0, anc_1,...,anc_n-2],
+        where q is split into q and anc_0, anc_0 is split into anc_0 and anc_1
+        and so on.
+
+        Args:
+            qubit (SplitQubit): Qubit to be split n times.
+            n (int): number of times to split qubit.
+            opid (OperationId): OperationId at which to split the qubit.
+
+        Returns:
+            List[SplitQubit]: List of qubits that qubit was split into.
+        """
+        wires = [self]
+
+        for i in range(n - 1):
+            new_wires = wires[-1].split_this_wire(opid)
+            wires[-1] = new_wires[0]
+            wires.append(new_wires[1])
+
+        return wires

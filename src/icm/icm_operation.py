@@ -1,4 +1,4 @@
-from typing import List
+from typing import Iterator, List, Optional
 
 from cirq import Circuit, Gate, Operation
 
@@ -12,12 +12,22 @@ class ICMOperation(Operation):
     """
 
     def __init__(self, operation: Operation) -> None:
-        self.icm_op_id = None
-        self.decomposed = None
+        self.icm_op_id: Optional[OperationId] = None
+        self.decomposed: Optional[bool] = None
 
         # replace qubits with SplitQubits
         new_qubits = [SplitQubit(str(qubit_id)) for qubit_id in list(operation.qubits)]
-        self.operation = operation.gate.on(*new_qubits)
+        if isinstance(operation.gate, Gate):
+            self.operation = operation.gate.on(*new_qubits)
+        else:
+            TypeError("Input to ICMCircuit must only have gates.")
+
+    @property
+    def qubits(self):
+        return self.operation.gate.qubits
+
+    def with_qubits(self, *new_qubits):
+        return ICMOperation(self.operation.with_qubits(*new_qubits))
 
     def has_decomposed_flag(self, gate_type: Gate) -> bool:
         """Returns true op is a gate of the type gate_type and has the
@@ -33,7 +43,7 @@ class ICMOperation(Operation):
                 flag "decomposed" and false otherwise.
         """
         if self.operation.gate == gate_type:
-            return self.decomposed != None
+            return self.decomposed is not None
         return False
 
     def has_op_id(self, gate_types: List[Gate]) -> bool:
@@ -50,13 +60,25 @@ class ICMOperation(Operation):
                 flag "icm_op_id" and false otherwise.
         """
         if self.operation.gate in gate_types:
-            return self.icm_op_id != None
+            return self.icm_op_id is not None
         return False
 
 
 class ICMCircuit(Circuit):
-    def __init__(self, operations: List[Operation]) -> None:
+    """Circuit which only has ICMOperations."""
+
+    def __init__(self, operations: Iterator[Operation]) -> None:
         super().__init__([ICMOperation(op) for op in operations])
+
+    def all_operations(self) -> Iterator[ICMOperation]:
+        all_ops = []
+        for moment in self:
+            for op in moment.operations:
+                if isinstance(op, ICMOperation):
+                    all_ops.append(op)
+                else:
+                    TypeError("ICMCircuit must only contain ICMOperations")
+        return iter(all_ops)
 
     def reset_decomposition_flags(self, gate_type: Gate) -> None:
         """For all operations in a circuit, set the decomposition flags with the
@@ -67,7 +89,7 @@ class ICMCircuit(Circuit):
             gate_type (Gate): type of gate that we want to change the flag for.
         """
         for op in self.all_operations():
-            if self.decomposed_flag(op, gate_type):
+            if op.has_decomposed_flag(gate_type):
                 op.decomposed = False
 
     def add_decomposition_flags(self, gate_type: Gate) -> None:
@@ -79,7 +101,7 @@ class ICMCircuit(Circuit):
             gate_type (Gate): type of gate that we want to add the flag for.
         """
         for op in self.all_operations():
-            if not op.decomposed != None:
+            if not op.has_decomposed_flag(gate_type):
                 op.decomposed = True
 
     def remove_decomposition_flags(self, gate_type: Gate) -> None:
@@ -91,13 +113,14 @@ class ICMCircuit(Circuit):
             gate_type (Gate): type of gate that we want to remove the flag for.
         """
         for op in self.all_operations():
-            op.decomposed = None
+            if op.has_decomposed_flag(gate_type):
+                op.decomposed = None
 
     def reset_op_ids(self, gate_types: Gate) -> None:
         self.remove_decomposition_flags(gate_types)
         self.add_decomposition_flags(gate_types)
 
-    def add_op_ids(self, gate_types: Gate) -> None:
+    def add_op_ids(self, gate_types: List[Gate]) -> None:
         """Tests if op is a gate of the type gate_type and if it
         is, give it an id. Increments the new ids by 1 for each
         gate of type gate_type the function finds in circuit.
@@ -117,7 +140,7 @@ class ICMCircuit(Circuit):
                 nr_op += 1
                 # print(nr_op)
 
-    def remove_op_ids(self, gate_types: Gate) -> None:
+    def remove_op_ids(self, gate_types: List[Gate]) -> None:
         """For all operations in a circuit, remove the icm_op_id flags for gates
         with the type gate_type.
 

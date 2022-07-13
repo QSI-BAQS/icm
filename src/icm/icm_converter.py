@@ -8,13 +8,14 @@ from typing import List
 
 import cirq
 from cirq import CNOT, Circuit, Gate, H, Operation, S, T, measure
+from cirq.ops import EigenGate
 
-from .icm_operation import add_op_ids, is_op_with_op_id
+from icm.icm_operation import ICMCircuit, ICMOperation
+
 from .icm_operation_id import RIGHT_MOST_OP
-from .wire_manipulation import initialise_circuit, split_wires
 
 
-def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
+def icm_circuit(circuit: Circuit, raw_gates_to_decomp: List[EigenGate]) -> Circuit:
     """
     Function that converts an input circuit into inverse icm form. We implement
     Cliffords through initialization and CNOT, but T gates are implemented via
@@ -41,12 +42,12 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
     """
     # skips decomposing H and S, S**-1
     skip = ((H, 1), (S, 0.5), (S, -0.5))
-    gates_to_decomp = [
-        gate for gate in gates_to_decomp if not (gate, gate.exponent) in skip
+    gates_to_decomp: List[Gate] = [
+        gate for gate in raw_gates_to_decomp if not (gate, gate.exponent) in skip
     ]
 
-    circuit = initialise_circuit(circuit)
-    add_op_ids(circuit, gates_to_decomp)
+    circuit = ICMCircuit(circuit.all_operations())
+    circuit.add_op_ids(gates_to_decomp)
 
     decomposed_list = []
     queue = list(circuit.all_operations())
@@ -56,20 +57,26 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
     while queue:
         op = queue.pop(0)
 
-        decomp = []
-        new_op_id = op.icm_op_id.add_decomp_level()
+        decomp: List[Operation] = []
+        if op.icm_op_id is None:
+            TypeError("OperationID must be defined for all gate in circuit.")
+        else:
+            new_op_id = op.icm_op_id.add_decomp_level()
 
         # If gate is not in the to be decomposed list, apply it to
         # the latest reference.
         if op.gate not in gates_to_decomp:
-            qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
-            decomp = op.gate.on(*qubits)
-            decomposed_list.append(decomp)
-            continue
+            if op.operation.gate is not None:
+                qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
+                decomp.append(op.operation.gate.on(*qubits))
+                decomposed_list.append(decomp)
+                continue
+            else:
+                TypeError("Every Operation in the input circuit must be defined.")
 
         # T and T^-1 decomp
         if op.gate in (T**-1, T):
-            wires = split_wires(op.qubits[0], 2, new_op_id)
+            wires = op.qubits[0].split(2, new_op_id)
 
             # Add CNOTS
             decomp.append(CNOT(wires[0], wires[1]))
@@ -87,7 +94,7 @@ def icm_circuit(circuit: Circuit, gates_to_decomp: List[Gate]) -> Circuit:
     return circuit
 
 
-def keep_icm(cirq_operation: Operation) -> bool:
+def keep_icm(cirq_operation: ICMOperation) -> bool:
     """
     Determine if an operation should be decomposed into an ICM circuit.
 
@@ -111,18 +118,21 @@ def keep_icm(cirq_operation: Operation) -> bool:
     """
     keep = False
 
-    if isinstance(cirq_operation.gate, (cirq.CNOTPowGate, cirq.measurementGate)):
+    if isinstance(cirq_operation.gate, (cirq.CNotPowGate, cirq.MeasurementGate)):
         keep = True
 
-    if not is_op_with_op_id(cirq_operation, [cirq_operation.gate]):
-        keep = True
+    if isinstance(cirq_operation.gate, Gate):
+        if not cirq_operation.has_op_id([cirq_operation.gate]):
+            keep = True
+    else:
+        TypeError("Operation must contain gate.")
 
     if keep:
         # Update the reference to the latest
         nqubits = []
         for i in range(len(cirq_operation.qubits)):
             nqubits.append(cirq_operation.qubits[i].get_latest_ref(RIGHT_MOST_OP))
-        cirq_operation._qubits = tuple(nqubits)
+        cirq_operation.operation = cirq_operation.with_qubits(tuple(nqubits))
 
     return keep
 
