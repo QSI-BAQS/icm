@@ -29,3 +29,7 @@ set up.
 ### Pre-commit
 Pre-commit checks your code whenever you make a commit to make sure you are
 following style rules. This makes sure all our commits are clean and functional.
+
+## Acknowledgments
+
+This code is based on the icm code from [fondq](https://github.com/alexandrupaler/fondq/tree/master/icm) by [Alexandru Paler](https://github.com/alexandrupaler).
