@@ -17,8 +17,7 @@ Circuits are provided to the compiler in the form of [Cirq](https://quantumai.go
 Simply call the `icm_converter` function with the circuit you want to put in ICM form and the list of gates that the circuit is composed of. You will then receive an equivalent circuit in ICM form.
 
 ## Development
-To keep our repository clean and functional, we have implemented style checks and
-tests. We expect that contributors will follow these standards when contributing.
+To keep our repository clean and functional, we have implemented style checks and tests. We expect that contributors will follow these standards when contributing.
 ### Installation
 To make sure you have all the tools to run style checks, you should run
 `pip install -e "[.dev]"` to make sure all those tools are installed. You might
