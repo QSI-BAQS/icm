@@ -6,7 +6,7 @@
 2. CNOT - A series of CNOT gates that perform most of the computation
 3. Measurement - Measuring in the Z or X eigenbases is used to implement single qubit gates in the sequence. 
 
-In addition to the usual implementation of ICM, we have also implemented [*Faster manipulation of large quantum circuits using wire label reference diagrams*](https://arxiv.org/abs/1811.060110) which cuts down on the number of gates added to the circuit when adding ancilla qubits. 
+In addition to the usual implementation of ICM, we have also implemented [*Faster manipulation of large quantum circuits using wire label reference diagrams*](https://arxiv.org/abs/1811.06011) which cuts down on the number of gates added to the circuit when adding ancilla qubits. 
 
 ## How to Use?
 
@@ -17,7 +17,9 @@ Circuits are provided to the compiler in the form of [Cirq](https://quantumai.go
 Simply call the `icm_converter` function with the circuit you want to put in ICM form and the list of gates that the circuit is composed of. You will then receive an equivalent circuit in ICM form.
 
 ## Development
-To keep our repository clean and functional, we have implemented style checks and tests. We expect that contributors will follow these standards when contributing.
+To keep our repository clean and functional, we have implemented style checks and
+tests. We expect that contributors will follow these standards when contributing.
+
 ### Installation
 To make sure you have all the tools to run style checks, you should run
 `pip install -e "[.dev]"` to make sure all those tools are installed. You might
@@ -27,3 +29,7 @@ set up.
 ### Pre-commit
 Pre-commit checks your code whenever you make a commit to make sure you are
 following style rules. This makes sure all our commits are clean and functional.
+
+## Acknowledgments
+
+This code is based on the icm code from [fondq](https://github.com/alexandrupaler/fondq/tree/master/icm) by [Alexandru Paler](https://github.com/alexandrupaler).
