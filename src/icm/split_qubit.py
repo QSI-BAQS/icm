@@ -1,8 +1,9 @@
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
+from warnings import warn
 
 from cirq import NamedQubit
 
-from icm.icm_operation_id import OperationId
+from .operation_id import OperationId
 
 
 class SplitQubit(NamedQubit):
@@ -16,7 +17,6 @@ class SplitQubit(NamedQubit):
 
     """
 
-    # Static nr_ancilla
     nr_ancilla = -1
 
     def __init__(self, name: str):
@@ -24,6 +24,9 @@ class SplitQubit(NamedQubit):
         self.children: Tuple[Optional["SplitQubit"], Optional["SplitQubit"]]
         self.children = (None, None)
         self.threshold = OperationId()
+
+    def __repr__(self) -> str:
+        return f"cirq.SplitQubit({self._name!r})"
 
     def get_latest_ref(self, operation_id: OperationId) -> "SplitQubit":
         """Update the last id corresponding to the latest child added.
@@ -59,40 +62,47 @@ class SplitQubit(NamedQubit):
                     " must be defined to split wire."
                 )
 
-        if stuck == 999:
-            print(
+        if stuck == 10e10:
+            warn(
                 f"Error: Got stuck updating reference for qubit {self.name} "
                 f"with operation with id : {operation_id.numbers}."
+                "If number of T gates is more than 10^10 this message can be ignored."
             )
 
         return n_ref
 
-    def split_this_wire(
-        self, operation_id: OperationId
-    ) -> Tuple["SplitQubit", "SplitQubit"]:
-        """Decompose qubit into it's children.
+    def split(self, n: int, opid: OperationId) -> List["SplitQubit"]:
+        """
+        Split a qubit n times
+
+        This will return a list of qubits [q, anc_0, anc_1,...,anc_n-2],
+        where q is split into q and anc_0, anc_0 is split into anc_0 and anc_1
+        and so on.
 
         Args:
-            operation_id (OperationId) : Threshold at which to split qubit.
+            qubit (SplitQubit): Qubit to be split n times.
+            n (int): number of times to split qubit.
+            opid (OperationId): OperationId at which to split the qubit.
 
         Returns:
-            Tuple[SplitQubit, SplitQubit]: 2 qubits on which the equivalent operations
-                are performed in the ICM format.
+            List[SplitQubit]: List of qubits that qubit was split into.
         """
-        # It can happen that the reference is too old
-        current_wire = self.get_latest_ref(operation_id)
+        wires = [self]
 
-        # The wire receives a threshold for latter updates
-        current_wire.threshold = operation_id
+        for i in range(n - 1):
+            # It can happen that the reference is too old
+            current_wire = wires[-1].get_latest_ref(opid)
+            # The wire receives a threshold for latter updates
+            current_wire.threshold = opid
+            # It is a new wire, but keep the old name
+            n_child_0 = SplitQubit(current_wire.name)
+            # It is a new wire, that is introduced and gets a new name
+            SplitQubit.nr_ancilla += 1
+            n_child_1 = SplitQubit("anc_{0}".format(SplitQubit.nr_ancilla))
+            current_wire.children = (n_child_0, n_child_1)
 
-        # It is a new wire, but keep the old name
-        n_child_0 = SplitQubit(current_wire.name)
+            new_wires = current_wire.children
+            wires[-1] = new_wires[0]
+            wires.append(new_wires[1])
 
-        # It is a new wire, that is introduced and gets a new name
-        SplitQubit.nr_ancilla += 1
-        n_child_1 = SplitQubit("anc_{0}".format(SplitQubit.nr_ancilla))
-
-        current_wire.children = (n_child_0, n_child_1)
-
-        # Return the children as a tuple
-        return current_wire.children
+        return wires
