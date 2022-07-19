@@ -4,37 +4,69 @@ from cirq import CNOT, MeasurementGate, T, X
 from icm.icm_circuit import ICMCircuit, ICMGateOperation
 from icm.split_qubit import SplitQubit
 
-TEST_GATES = [
+TEST_CIRCUITS = [
     (
-        ICMGateOperation(T, (SplitQubit("q0"),)),
-        [
+        ICMCircuit(ICMGateOperation(T, (SplitQubit("q0"),))),
+        ICMCircuit(
             ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("anc_0"))),
             ICMGateOperation(MeasurementGate(1), (SplitQubit("q0"),)),
-        ],
+        ),
     ),
     (
-        ICMGateOperation(X, (SplitQubit("q0"),)),
-        [
+        ICMCircuit(ICMGateOperation(X, (SplitQubit("q0"),))),
+        ICMCircuit(
             ICMGateOperation(X, (SplitQubit("q0"),)),
-        ],
+        ),
     ),
     (
-        ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("q1"))),
-        [
+        ICMCircuit(ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("q1")))),
+        ICMCircuit(
             ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("q1"))),
-        ],
+        ),
+    ),
+    (
+        # This test is probably wrong...
+        ICMCircuit(
+            ICMGateOperation(T, (SplitQubit("q0"),)),
+            ICMGateOperation(T, (SplitQubit("q0"),)),
+        ),
+        ICMCircuit(
+            ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("anc_0"))),
+            ICMGateOperation(MeasurementGate(1), (SplitQubit("q0"),)),
+            ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("anc_1"))),
+            ICMGateOperation(MeasurementGate(1), (SplitQubit("q0"),)),
+        ),
+    ),
+    (
+        ICMCircuit(
+            ICMGateOperation(T, (SplitQubit("q0"),)),
+            ICMGateOperation(T, (SplitQubit("q1"),)),
+        ),
+        ICMCircuit(
+            ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("anc_0"))),
+            ICMGateOperation(CNOT, (SplitQubit("q1"), SplitQubit("anc_1"))),
+            ICMGateOperation(MeasurementGate(1), (SplitQubit("q0"),)),
+            ICMGateOperation(MeasurementGate(1), (SplitQubit("q1"),)),
+        ),
+    ),
+    (
+        ICMCircuit(
+            ICMGateOperation(T, (SplitQubit("q0"),)),
+            ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("q1"))),
+        ),
+        ICMCircuit(
+            ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("anc_0"))),
+            ICMGateOperation(MeasurementGate(1), (SplitQubit("q0"),)),
+            ICMGateOperation(CNOT, (SplitQubit("q0"), SplitQubit("q1"))),
+        ),
     ),
 ]
 
 
-@pytest.mark.parametrize("gate_operation,target_circuit_gates", TEST_GATES)
-def test_compilation_of_individual_gates(gate_operation, target_circuit_gates):
+@pytest.mark.parametrize("circuit, target_circuit", TEST_CIRCUITS)
+def test_circuit_compilation(circuit, target_circuit):
     # if
-    icm_circuit = ICMCircuit(gate_operation)
-    target_circuit = ICMCircuit(*target_circuit_gates)
-
-    # when
-    icm_circuit.compile([gate_operation._gate])
+    circuit.compile([T])
 
     # then
-    assert icm_circuit == target_circuit
+    assert circuit == target_circuit

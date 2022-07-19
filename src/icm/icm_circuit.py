@@ -1,5 +1,5 @@
 import itertools
-from typing import Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Iterator, List, Optional, Sequence, Tuple, TypeVar, Union
 
 from cirq import (
     CNOT,
@@ -21,6 +21,8 @@ from cirq.ops import EigenGate
 from .operation_id import OperationId
 from .split_qubit import SplitQubit
 
+TSelf = TypeVar("TSelf", bound="ICMGateOperation")
+
 
 class ICMGateOperation(GateOperation):
     """Operation with OperationId built in that only works on
@@ -28,12 +30,14 @@ class ICMGateOperation(GateOperation):
     """
 
     def __init__(
-        self, gate: Gate, qubits: Sequence[Union[NamedQubit, SplitQubit]]
+        self,
+        gate: Gate,
+        qubits: Sequence[Union[NamedQubit, SplitQubit]],
+        icm_op_id: Optional[OperationId] = None,
     ) -> None:
-        self.icm_op_id: Optional[OperationId] = None
-
+        self.icm_op_id = icm_op_id
         # Recreation of __init__ of GateOperation
-        self._gate = gate
+        self._gate: Gate = gate
         self._qubits: Tuple[SplitQubit, ...] = tuple(
             SplitQubit(qubit.name) for qubit in qubits
         )
@@ -42,6 +46,11 @@ class ICMGateOperation(GateOperation):
     def qubits(self) -> Tuple[SplitQubit, ...]:
         """The qubits targeted by the operation."""
         return self._qubits
+
+    def with_qubits(  # type: ignore
+        self, *new_qubits: SplitQubit
+    ) -> "ICMGateOperation":
+        return ICMGateOperation(self.gate, new_qubits, self.icm_op_id)
 
     def has_op_id(self, gate_types: List[Gate]) -> bool:
         """Tests if op is a gate of the type gate_type and has the
@@ -154,6 +163,7 @@ class ICMCircuit(Circuit):
         gates_to_decomp: list
             list of gates that need to be decomposed in self.
         """
+        SplitQubit.nr_ancilla = -1  # reset ancilla labels
         skip = ((H, 1), (S, 0.5), (S, -0.5))
         gates_to_decomp: List[Gate] = [
             gate for gate in raw_gates_to_decomp if not (gate, gate.exponent) in skip
@@ -175,13 +185,8 @@ class ICMCircuit(Circuit):
 
             # If gate is not in gates_to_decomp, apply it to the latest reference.
             if op.gate not in gates_to_decomp:
-                if op.gate is not None:
-                    qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
-                    decomp.append(op.gate.on(*qubits))
-                    decomposed_circuit_ops += decomp
-                    continue
-                else:
-                    TypeError("Every Operation in the input circuit must be defined.")
+                qubits = [q.get_latest_ref(new_op_id) for q in op.qubits]
+                decomp.append(op.with_qubits(*qubits))
 
             # T and T^-1 decomp using measurement-based magic state injection
             if op.gate in (T**-1, T):
